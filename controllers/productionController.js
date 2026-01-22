@@ -82,6 +82,126 @@ exports.createLog = async (req, res) => {
   }
 };
 
+// Get all production logs
+exports.getAllLogs = async (req, res) => {
+  try {
+    const { startDate, endDate, limit = 50, page = 1 } = req.query;
+    const query = {};
+    
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+    
+    const skip = (page - 1) * limit;
+    
+    const logs = await ProductionLog.find(query)
+      .sort('-date')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('operator', 'username email');
+    
+    const total = await ProductionLog.countDocuments(query);
+    
+    res.json({
+      success: true,
+      count: logs.length,
+      total,
+      pages: Math.ceil(total / limit),
+      data: logs
+    });
+  } catch (error) {
+    console.error('Error getting production logs:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Get production log by ID
+exports.getLogById = async (req, res) => {
+  try {
+    const log = await ProductionLog.findById(req.params.id)
+      .populate('operator', 'username email');
+    
+    if (!log) {
+      return res.status(404).json({
+        success: false,
+        error: 'Production log not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: log
+    });
+  } catch (error) {
+    console.error('Error getting production log:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Update production log
+exports.updateLog = async (req, res) => {
+  try {
+    const log = await ProductionLog.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!log) {
+      return res.status(404).json({
+        success: false,
+        error: 'Production log not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: log,
+      message: 'Production log updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating production log:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Delete production log
+exports.deleteLog = async (req, res) => {
+  try {
+    const log = await ProductionLog.findByIdAndDelete(req.params.id);
+    
+    if (!log) {
+      return res.status(404).json({
+        success: false,
+        error: 'Production log not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Production log deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting production log:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
 // Get daily production
 exports.getDailyProduction = async (req, res) => {
   try {
@@ -178,6 +298,106 @@ exports.getPerformance = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting performance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Get production statistics
+exports.getProductionStats = async (req, res) => {
+  try {
+    const today = new Date();
+    const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const [weeklyLogs, monthlyLogs, totalLogs] = await Promise.all([
+      ProductionLog.countDocuments({ date: { $gte: lastWeek } }),
+      ProductionLog.countDocuments({
+        date: {
+          $gte: new Date(today.getFullYear(), today.getMonth(), 1),
+          $lt: new Date(today.getFullYear(), today.getMonth() + 1, 1)
+        }
+      }),
+      ProductionLog.countDocuments({})
+    ]);
+    
+    const stats = await ProductionLog.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          count: { $sum: 1 },
+          totalProducts: { $sum: { $size: "$products" } }
+        }
+      },
+      { $sort: { _id: -1 } },
+      { $limit: 30 }
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        weeklyLogs,
+        monthlyLogs,
+        totalLogs,
+        dailyStats: stats
+      }
+    });
+  } catch (error) {
+    console.error('Error getting production stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Search production logs
+exports.searchLogs = async (req, res) => {
+  try {
+    const { query, field = 'all' } = req.query;
+    const { limit = 50, page = 1 } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query is required'
+      });
+    }
+    
+    const skip = (page - 1) * limit;
+    let searchQuery = {};
+    
+    if (field === 'all') {
+      searchQuery = {
+        $or: [
+          { 'products.productCode': { $regex: query, $options: 'i' } },
+          { 'products.productName': { $regex: query, $options: 'i' } },
+          { 'materialsUsed.materialName': { $regex: query, $options: 'i' } },
+          { notes: { $regex: query, $options: 'i' } }
+        ]
+      };
+    } else {
+      searchQuery[field] = { $regex: query, $options: 'i' };
+    }
+    
+    const logs = await ProductionLog.find(searchQuery)
+      .sort('-date')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('operator', 'username email');
+    
+    const total = await ProductionLog.countDocuments(searchQuery);
+    
+    res.json({
+      success: true,
+      count: logs.length,
+      total,
+      pages: Math.ceil(total / limit),
+      data: logs
+    });
+  } catch (error) {
+    console.error('Error searching production logs:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

@@ -72,6 +72,38 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+// Get products by status
+exports.getProductsByStatus = async (req, res) => {
+  try {
+    const { status } = req.params;
+    const { limit = 50, page = 1 } = req.query;
+    
+    const skip = (page - 1) * limit;
+    
+    const products = await Product.find({ status })
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('createdBy', 'username email');
+    
+    const total = await Product.countDocuments({ status });
+    
+    res.json({
+      success: true,
+      count: products.length,
+      total,
+      pages: Math.ceil(total / limit),
+      data: products
+    });
+  } catch (error) {
+    console.error('Error getting products by status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
 // Get product by ID
 exports.getProductById = async (req, res) => {
   try {
@@ -136,6 +168,31 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+// Delete product
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
 // Update product status
 exports.updateStatus = async (req, res) => {
   try {
@@ -171,6 +228,40 @@ exports.updateStatus = async (req, res) => {
     res.status(400).json({
       success: false,
       error: error.message
+    });
+  }
+};
+
+// Batch update status for multiple products
+exports.batchUpdateStatus = async (req, res) => {
+  try {
+    const { productIds, status } = req.body;
+    
+    if (!Array.isArray(productIds) || productIds.length === 0 || !status) {
+      return res.status(400).json({
+        success: false,
+        error: 'Product IDs array and status are required'
+      });
+    }
+    
+    const result = await Product.updateMany(
+      { _id: { $in: productIds } },
+      { 
+        status: status,
+        lastUpdated: Date.now()
+      }
+    );
+    
+    res.json({
+      success: true,
+      message: `Updated ${result.modifiedCount} products to status: ${status}`,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error in batch update status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
     });
   }
 };

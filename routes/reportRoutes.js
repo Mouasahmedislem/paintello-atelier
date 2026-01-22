@@ -10,8 +10,8 @@ router.use(auth());
 router.get('/daily', reportController.generateDailyReport);
 router.get('/weekly', reportController.generateWeeklyReport);
 router.get('/monthly', reportController.generateMonthlyReport);
-router.get('/materials', reportController.materialConsumptionReport);
+router.get('/excel', reportController.exportToExcel);
+router.get('/material-consumption', reportController.materialConsumptionReport);
 router.get('/productivity', reportController.productivityReport);
-router.get('/export/excel', reportController.exportToExcel);
 
 module.exports = router;

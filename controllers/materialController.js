@@ -45,12 +45,95 @@ exports.getAllMaterials = async (req, res) => {
   }
 };
 
+// Get material by ID
+exports.getMaterialById = async (req, res) => {
+  try {
+    const material = await Material.findById(req.params.id);
+    
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        error: 'Material not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: material
+    });
+  } catch (error) {
+    console.error('Error getting material:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Update material
+exports.updateMaterial = async (req, res) => {
+  try {
+    const material = await Material.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        error: 'Material not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: material,
+      message: 'Material updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating material:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Delete material
+exports.deleteMaterial = async (req, res) => {
+  try {
+    const material = await Material.findByIdAndDelete(req.params.id);
+    
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        error: 'Material not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Material deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting material:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
 // Get low stock materials
 exports.getLowStock = async (req, res) => {
   try {
-    const lowStockMaterials = await Material.find({
-      currentStock: { $lt: { $min: ['$minThreshold', 10] } },
-      isActive: true
+    const materials = await Material.find({ isActive: true });
+    
+    // Filter materials with stock below threshold
+    const lowStockMaterials = materials.filter(material => {
+      const threshold = material.minThreshold || 10;
+      return material.currentStock < threshold;
     });
     
     res.json({
@@ -63,6 +146,76 @@ exports.getLowStock = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting low stock:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Get material statistics
+exports.getMaterialStats = async (req, res) => {
+  try {
+    const totalMaterials = await Material.countDocuments({ isActive: true });
+    
+    const materials = await Material.find({ isActive: true });
+    
+    // Calculate stats
+    const lowStockCount = materials.filter(m => {
+      const threshold = m.minThreshold || 10;
+      return m.currentStock < threshold;
+    }).length;
+    
+    const outOfStockCount = materials.filter(m => m.currentStock <= 0).length;
+    
+    const totalValue = materials.reduce((sum, material) => {
+      return sum + (material.currentStock * (material.unitCost || 0));
+    }, 0);
+    
+    // Group by type
+    const materialsByType = {};
+    materials.forEach(material => {
+      if (!materialsByType[material.type]) {
+        materialsByType[material.type] = 0;
+      }
+      materialsByType[material.type]++;
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        totalMaterials,
+        lowStockCount,
+        outOfStockCount,
+        totalValue: parseFloat(totalValue.toFixed(2)),
+        materialsByType
+      }
+    });
+  } catch (error) {
+    console.error('Error getting material stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+};
+
+// Get materials by type
+exports.getMaterialsByType = async (req, res) => {
+  try {
+    const { type } = req.params;
+    const materials = await Material.find({ 
+      type: type,
+      isActive: true 
+    }).sort('name');
+    
+    res.json({
+      success: true,
+      count: materials.length,
+      data: materials
+    });
+  } catch (error) {
+    console.error('Error getting materials by type:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -151,6 +304,35 @@ exports.useMaterial = async (req, res) => {
     res.status(400).json({
       success: false,
       error: error.message
+    });
+  }
+};
+
+// Search materials
+exports.searchMaterials = async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    const materials = await Material.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { materialCode: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { supplier: { $regex: query, $options: 'i' } }
+      ],
+      isActive: true
+    }).sort('name');
+    
+    res.json({
+      success: true,
+      count: materials.length,
+      data: materials
+    });
+  } catch (error) {
+    console.error('Error searching materials:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
     });
   }
 };

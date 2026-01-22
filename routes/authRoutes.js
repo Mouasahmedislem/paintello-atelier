@@ -7,13 +7,15 @@ const auth = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
-// Protected routes
+// Protected routes (require authentication)
 router.get('/me', auth(), authController.getCurrentUser);
 router.put('/profile', auth(), authController.updateProfile);
-router.post('/change-password', auth(), authController.changePassword);
+router.put('/password', auth(), authController.updatePassword);
 
-// Admin only
+// Admin routes
 router.get('/users', auth(['admin']), authController.getAllUsers);
-router.put('/users/:id/role', auth(['admin']), authController.updateUserRole);
+router.get('/users/:id', auth(['admin']), authController.getUserById);
+router.put('/users/:id', auth(['admin']), authController.updateUser);
+router.delete('/users/:id', auth(['admin']), authController.deleteUser);
 
 module.exports = router;

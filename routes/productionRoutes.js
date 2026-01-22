@@ -7,12 +7,14 @@ const auth = require('../middleware/auth');
 router.use(auth());
 
 // Production routes
-router.post('/log', productionController.createLog);
-router.get('/logs', productionController.getAllLogs);
+router.post('/', productionController.createLog);
+router.get('/', productionController.getAllLogs);
+router.get('/stats', productionController.getProductionStats);
 router.get('/daily', productionController.getDailyProduction);
-router.get('/weekly', productionController.getWeeklyProduction);
-router.get('/monthly', productionController.getMonthlyProduction);
-router.get('/logs/:date', productionController.getLogsByDate);
 router.get('/performance', productionController.getPerformance);
+router.get('/search', productionController.searchLogs);
+router.get('/:id', productionController.getLogById);
+router.put('/:id', productionController.updateLog);
+router.delete('/:id', productionController.deleteLog);
 
 module.exports = router;
