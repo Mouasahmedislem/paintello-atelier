@@ -1,9 +1,20 @@
 {
+<<<<<<< HEAD
   "name": "paintello-atelier",
   "version": "1.0.0",
   "engines": {
     "node": "18.x",
     "npm": "9.x"
+=======
+  "name": "paintello-client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+>>>>>>> ade521801a01211fdf843f4f7eec045e51f55180
   },
   "scripts": {
     "start": "node server.js",
@@ -12,6 +23,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "heroku-postbuild": "cd client && npm install && npm run build"
   },
+<<<<<<< HEAD
   "dependencies": {
     "express": "^4.18.2",
     "mongoose": "^7.5.0",
@@ -28,4 +40,18 @@
     "concurrently": "^8.2.1"
   },
   "devDependencies": {}
+=======
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+>>>>>>> ade521801a01211fdf843f4f7eec045e51f55180
 }
