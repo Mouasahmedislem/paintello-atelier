@@ -6,7 +6,8 @@ require('dotenv').config();
 
 // Security middleware
 const helmet = require('helmet');
-
+const compression = require('compression');
+const morgan = require('morgan');
 
 const app = express();
 
@@ -15,7 +16,8 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }));
-
+app.use(compression());
+app.use(morgan('dev'));
 
 // Middleware
 app.use(cors());
