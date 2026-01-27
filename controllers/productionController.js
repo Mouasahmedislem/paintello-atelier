@@ -1,5 +1,4 @@
-[file name]: productionController.js
-[file content begin]
+
 const mongoose = require('mongoose');
 const ProductionLog = require('../models/ProductionLog');
 const Product = require('../models/Product');
@@ -14,7 +13,7 @@ const isValidObjectId = (id) => {
 // Get production log by ID - 修复版本
 exports.getLogById = async (req, res) => {
   try {
-    // 验证 ID 是否是有效的 ObjectId
+    // Validate if ID is a valid ObjectId
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -44,7 +43,6 @@ exports.getLogById = async (req, res) => {
     });
   }
 };
-
 // Update production log - 修复版本
 exports.updateLog = async (req, res) => {
   try {
