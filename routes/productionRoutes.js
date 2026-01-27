@@ -1,5 +1,3 @@
-[file name]: productionRoutes.js
-[file content begin]
 const express = require('express');
 const router = express.Router();
 const productionController = require('../controllers/productionController');
@@ -22,4 +20,3 @@ router.put('/:id', productionController.updateLog);
 router.delete('/:id', productionController.deleteLog);
 
 module.exports = router;
-[file content end]
