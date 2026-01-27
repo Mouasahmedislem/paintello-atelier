@@ -4,22 +4,9 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-// Security middleware
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-
 const app = express();
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
-}));
-app.use(compression());
-app.use(morgan('dev'));
-
-// Middleware
+// Middleware (REMOVED compression and helmet for now)
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -109,15 +96,21 @@ const server = app.listen(PORT, () => {
   console.log(`📊 Database: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
 });
 
-// Graceful shutdown
+// FIXED: Graceful shutdown (remove callback from mongoose.connection.close)
 process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM signal received. Closing server...');
   server.close(() => {
     console.log('🔌 HTTP server closed');
-    mongoose.connection.close(false, () => {
-      console.log('🗄️  MongoDB connection closed');
-      process.exit(0);
-    });
+    // Fix: Don't pass callback to mongoose.connection.close()
+    mongoose.connection.close()
+      .then(() => {
+        console.log('🗄️  MongoDB connection closed');
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error('Error closing MongoDB connection:', err);
+        process.exit(1);
+      });
   });
 });
 
