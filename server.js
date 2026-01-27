@@ -31,7 +31,76 @@ app.get('/health', (req, res) => {
     database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
   });
 });
-
+// Seed endpoint (run manually via browser or curl)
+app.post('/api/seed', async (req, res) => {
+  try {
+    console.log('🌱 Manual seed triggered via API');
+    
+    // Your seed logic here
+    const User = require('./models/User');
+    const bcrypt = require('bcryptjs');
+    
+    // Check if users already exist
+    const existingAdmin = await User.findOne({ email: 'admin@paintello.com' });
+    const existingOperator = await User.findOne({ email: 'operator@paintello.com' });
+    
+    if (existingAdmin && existingOperator) {
+      return res.json({ 
+        success: false, 
+        message: 'Users already exist. No seed needed.' 
+      });
+    }
+    
+    // Create users
+    const salt = await bcrypt.genSalt(10);
+    
+    const users = [
+      {
+        username: 'admin',
+        email: 'admin@paintello.com',
+        password: await bcrypt.hash('Admin123!', salt),
+        fullName: 'System Administrator',
+        role: 'admin',
+        phone: '+212600000000',
+        isActive: true
+      },
+      {
+        username: 'operator',
+        email: 'operator@paintello.com',
+        password: await bcrypt.hash('Operator123!', salt),
+        fullName: 'Production Operator',
+        role: 'operator',
+        phone: '+212611111111',
+        isActive: true
+      }
+    ];
+    
+    for (const userData of users) {
+      const exists = await User.findOne({ email: userData.email });
+      if (!exists) {
+        const user = new User(userData);
+        await user.save();
+        console.log(`✅ Created user: ${user.email}`);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Seed completed. Users created.',
+      credentials: {
+        admin: 'admin@paintello.com / Admin123!',
+        operator: 'operator@paintello.com / Operator123!'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Seed error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/materials', materialRoutes);
