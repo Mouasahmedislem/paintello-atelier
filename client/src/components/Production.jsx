@@ -52,54 +52,48 @@ const Production = () => {
         }
     };
 
-    const fetchProductionLogs = async () => {
-        try {
-            const response = await axios.get('/api/production/logs?limit=10');
-            setLogs(response.data.data || []);
-        } catch (error) {
-            console.error('Error fetching production logs:', error);
-        }
-    };
+    // 修改 Production.js 组件中的 API 调用
 
-    const fetchDailyStats = async () => {
-        try {
-            const response = await axios.get('/api/production/daily');
-            setDailyStats(response.data);
-        } catch (error) {
-            console.error('Error fetching daily stats:', error);
-        }
-    };
+const fetchProductionLogs = async () => {
+  try {
+    // 改为正确的端点
+    const response = await axios.get('/api/production?limit=10');
+    setLogs(response.data.data || []);
+  } catch (error) {
+    console.error('Error fetching production logs:', error);
+  }
+};
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        
-        try {
-            await axios.post('/api/production/log', formData);
-            toast.success('Production log saved successfully!');
-            
-            // Reset form
-            setFormData({
-                shift: 'morning',
-                products: [{ productCode: '', action: '', quantity: 1, timeSpent: 0 }],
-                materialsUsed: [{ materialCode: '', quantity: 1, productCode: '' }],
-                notes: '',
-                workstation: 'Station 1'
-            });
-            
-            // Refresh data
-            fetchProductionLogs();
-            fetchDailyStats();
-            fetchProducts();
-            fetchMaterials();
-            
-        } catch (error) {
-            toast.error(error.response?.data?.error || 'Error saving log');
-        } finally {
-            setLoading(false);
-        }
-    };
-
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  
+  try {
+    // 改为正确的端点
+    await axios.post('/api/production', formData);
+    toast.success('Production log saved successfully!');
+    
+    // Reset form
+    setFormData({
+      shift: 'morning',
+      products: [{ productCode: '', action: '', quantity: 1, timeSpent: 0 }],
+      materialsUsed: [{ materialCode: '', quantity: 1, productCode: '' }],
+      notes: '',
+      workstation: 'Station 1'
+    });
+    
+    // Refresh data
+    fetchProductionLogs();
+    fetchDailyStats();
+    fetchProducts();
+    fetchMaterials();
+    
+  } catch (error) {
+    toast.error(error.response?.data?.error || 'Error saving log');
+  } finally {
+    setLoading(false);
+  }
+};
     const addProductField = () => {
         setFormData({
             ...formData,
