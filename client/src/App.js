@@ -6,6 +6,7 @@ import { Toaster, toast } from 'react-hot-toast';
 
 // Components
 import Login from './components/Login';
+import Register from './components/Register'; // ADD THIS IMPORT
 import Dashboard from './components/Dashboard';
 import Products from './components/Products';
 import Production from './components/Production';
@@ -139,6 +140,7 @@ function App() {
         ) : (
           <Routes>
             <Route path="/login" element={<Login login={login} />} />
+            <Route path="/register" element={<Register />} /> {/* ADD THIS ROUTE */}
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         )}
