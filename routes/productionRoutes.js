@@ -3,14 +3,12 @@ const router = express.Router();
 const productionController = require('../controllers/productionController');
 const auth = require('../middleware/auth');
 
-// Apply auth middleware to all routes
 router.use(auth());
 
-// Production routes
 router.post('/', productionController.createLog);
-router.post('/log', productionController.createLog); // Compatibility route
+router.post('/log', productionController.createLog);
 router.get('/', productionController.getAllLogs);
-router.get('/logs', productionController.getAllLogs); // Compatibility route
+router.get('/logs', productionController.getAllLogs);
 router.get('/stats', productionController.getProductionStats);
 router.get('/daily', productionController.getDailyProduction);
 router.get('/performance', productionController.getPerformance);
