@@ -2,35 +2,24 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/paintello', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
     });
-    
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database: ${conn.connection.db.databaseName}`);
-    
     return conn;
   } catch (error) {
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    console.error('Please check your MONGODB_URI in .env file');
-    console.error('Expected format: mongodb+srv://username:password@cluster.mongodb.net/database');
-    process.exit(1);
+    
+    // In production, don't crash - keep server running without DB
+    if (process.env.NODE_ENV === 'production') {
+      console.log('⚠️  Continuing without database connection...');
+      return null;
+    } else {
+      process.exit(1);
+    }
   }
 };
-
-mongoose.connection.on('connected', () => {
-  console.log('🔗 Mongoose connected to DB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error(`❌ Mongoose connection error: ${err}`);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('🔌 Mongoose disconnected');
-});
 
 module.exports = connectDB;
