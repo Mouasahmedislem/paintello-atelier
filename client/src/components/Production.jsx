@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     Card, Form, Button, Table, Badge, Row, Col,
-    Alert, InputGroup, FormControl, Modal, Tabs, Tab
+    Alert, Tabs, Tab
 } from 'react-bootstrap';
 import { 
     FaSave, FaPlus, FaMinus, FaCalendar, FaClock,
@@ -52,48 +52,55 @@ const Production = () => {
         }
     };
 
-    // 修改 Production.js 组件中的 API 调用
+    const fetchProductionLogs = async () => {
+        try {
+            const response = await axios.get('/api/production?limit=10');
+            setLogs(response.data.data || []);
+        } catch (error) {
+            console.error('Error fetching production logs:', error);
+        }
+    };
 
-const fetchProductionLogs = async () => {
-  try {
-    // 改为正确的端点
-    const response = await axios.get('/api/production?limit=10');
-    setLogs(response.data.data || []);
-  } catch (error) {
-    console.error('Error fetching production logs:', error);
-  }
-};
+    const fetchDailyStats = async () => {
+        try {
+            const response = await axios.get('/api/production/daily');
+            setDailyStats(response.data);
+        } catch (error) {
+            console.error('Error fetching daily stats:', error);
+        }
+    };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  
-  try {
-    // 改为正确的端点
-    await axios.post('/api/production', formData);
-    toast.success('Production log saved successfully!');
-    
-    // Reset form
-    setFormData({
-      shift: 'morning',
-      products: [{ productCode: '', action: '', quantity: 1, timeSpent: 0 }],
-      materialsUsed: [{ materialCode: '', quantity: 1, productCode: '' }],
-      notes: '',
-      workstation: 'Station 1'
-    });
-    
-    // Refresh data
-    fetchProductionLogs();
-    fetchDailyStats();
-    fetchProducts();
-    fetchMaterials();
-    
-  } catch (error) {
-    toast.error(error.response?.data?.error || 'Error saving log');
-  } finally {
-    setLoading(false);
-  }
-};
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        
+        try {
+            await axios.post('/api/production', formData);
+            toast.success('Production log saved successfully!');
+            
+            // Reset form
+            setFormData({
+                shift: 'morning',
+                products: [{ productCode: '', action: '', quantity: 1, timeSpent: 0 }],
+                materialsUsed: [{ materialCode: '', quantity: 1, productCode: '' }],
+                notes: '',
+                workstation: 'Station 1'
+            });
+            
+            // Refresh data
+            fetchProductionLogs();
+            fetchDailyStats();
+            fetchProducts();
+            fetchMaterials();
+            
+        } catch (error) {
+            console.error('Submit error:', error.response?.data);
+            toast.error(error.response?.data?.error || 'Error saving log');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const addProductField = () => {
         setFormData({
             ...formData,
@@ -282,7 +289,7 @@ const handleSubmit = async (e) => {
                                                                 <Form.Control
                                                                     type="number"
                                                                     value={product.quantity}
-                                                                    onChange={e => updateProductField(index, 'quantity', parseInt(e.target.value))}
+                                                                    onChange={e => updateProductField(index, 'quantity', parseInt(e.target.value) || 1)}
                                                                     min="1"
                                                                     required
                                                                 />
@@ -296,7 +303,7 @@ const handleSubmit = async (e) => {
                                                                 <Form.Control
                                                                     type="number"
                                                                     value={product.timeSpent}
-                                                                    onChange={e => updateProductField(index, 'timeSpent', parseInt(e.target.value))}
+                                                                    onChange={e => updateProductField(index, 'timeSpent', parseInt(e.target.value) || 0)}
                                                                     min="0"
                                                                 />
                                                             </Form.Group>
@@ -357,7 +364,7 @@ const handleSubmit = async (e) => {
                                                                     type="number"
                                                                     step="0.01"
                                                                     value={material.quantity}
-                                                                    onChange={e => updateMaterialField(index, 'quantity', parseFloat(e.target.value))}
+                                                                    onChange={e => updateMaterialField(index, 'quantity', parseFloat(e.target.value) || 1)}
                                                                     required
                                                                     min="0.01"
                                                                 />
