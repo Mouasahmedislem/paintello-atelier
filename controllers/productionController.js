@@ -4,17 +4,14 @@ const Product = require('../models/Product');
 const Material = require('../models/Material');
 const moment = require('moment');
 
-// Helper function to validate ObjectId
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
-// Create production log
 exports.createLog = async (req, res) => {
   try {
     const { products, materialsUsed, ...otherData } = req.body;
     
-    // Validate products exist
     for (const product of products) {
       const productExists = await Product.findOne({ productCode: product.productCode });
       if (!productExists) {
@@ -25,7 +22,6 @@ exports.createLog = async (req, res) => {
       }
     }
     
-    // Validate materials exist and have sufficient stock
     for (const material of materialsUsed) {
       const materialExists = await Material.findOne({ materialCode: material.materialCode });
       if (!materialExists) {
@@ -43,7 +39,6 @@ exports.createLog = async (req, res) => {
       }
     }
     
-    // Create log
     const log = new ProductionLog({
       ...otherData,
       products,
@@ -54,7 +49,6 @@ exports.createLog = async (req, res) => {
     
     await log.save();
     
-    // Update product statuses
     for (const product of products) {
       await Product.findOneAndUpdate(
         { productCode: product.productCode },
@@ -66,7 +60,6 @@ exports.createLog = async (req, res) => {
       );
     }
     
-    // Update material stock
     for (const material of materialsUsed) {
       await Material.findOneAndUpdate(
         { materialCode: material.materialCode },
@@ -88,7 +81,6 @@ exports.createLog = async (req, res) => {
   }
 };
 
-// Get all production logs
 exports.getAllLogs = async (req, res) => {
   try {
     const { startDate, endDate, limit = 50, page = 1 } = req.query;
@@ -127,10 +119,8 @@ exports.getAllLogs = async (req, res) => {
   }
 };
 
-// Get production log by ID
 exports.getLogById = async (req, res) => {
   try {
-    // Validate if ID is a valid ObjectId
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -161,10 +151,8 @@ exports.getLogById = async (req, res) => {
   }
 };
 
-// Update production log
 exports.updateLog = async (req, res) => {
   try {
-    // Validate if ID is a valid ObjectId
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -199,10 +187,8 @@ exports.updateLog = async (req, res) => {
   }
 };
 
-// Delete production log
 exports.deleteLog = async (req, res) => {
   try {
-    // Validate if ID is a valid ObjectId
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -232,7 +218,6 @@ exports.deleteLog = async (req, res) => {
   }
 };
 
-// Get daily production
 exports.getDailyProduction = async (req, res) => {
   try {
     const today = moment().startOf('day').toDate();
@@ -289,7 +274,6 @@ exports.getDailyProduction = async (req, res) => {
   }
 };
 
-// Get performance metrics
 exports.getPerformance = async (req, res) => {
   try {
     const startOfWeek = moment().startOf('week');
@@ -335,7 +319,6 @@ exports.getPerformance = async (req, res) => {
   }
 };
 
-// Get production statistics
 exports.getProductionStats = async (req, res) => {
   try {
     const today = new Date();
@@ -382,7 +365,6 @@ exports.getProductionStats = async (req, res) => {
   }
 };
 
-// Search production logs
 exports.searchLogs = async (req, res) => {
   try {
     const { query, field = 'all' } = req.query;
