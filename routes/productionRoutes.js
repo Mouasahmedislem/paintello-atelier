@@ -8,9 +8,9 @@ router.use(auth());
 
 // Production routes
 router.post('/', productionController.createLog);
-router.post('/log', productionController.createLog); // 添加兼容性路由
+router.post('/log', productionController.createLog); // Compatibility route
 router.get('/', productionController.getAllLogs);
-router.get('/logs', productionController.getAllLogs); // 添加兼容性路由
+router.get('/logs', productionController.getAllLogs); // Compatibility route
 router.get('/stats', productionController.getProductionStats);
 router.get('/daily', productionController.getDailyProduction);
 router.get('/performance', productionController.getPerformance);
