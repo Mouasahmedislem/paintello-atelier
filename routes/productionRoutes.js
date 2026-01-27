@@ -1,3 +1,5 @@
+[file name]: productionRoutes.js
+[file content begin]
 const express = require('express');
 const router = express.Router();
 const productionController = require('../controllers/productionController');
@@ -8,7 +10,9 @@ router.use(auth());
 
 // Production routes
 router.post('/', productionController.createLog);
+router.post('/log', productionController.createLog); // 添加兼容性路由
 router.get('/', productionController.getAllLogs);
+router.get('/logs', productionController.getAllLogs); // 添加兼容性路由
 router.get('/stats', productionController.getProductionStats);
 router.get('/daily', productionController.getDailyProduction);
 router.get('/performance', productionController.getPerformance);
@@ -18,3 +22,4 @@ router.put('/:id', productionController.updateLog);
 router.delete('/:id', productionController.deleteLog);
 
 module.exports = router;
+[file content end]
