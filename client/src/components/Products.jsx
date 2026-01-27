@@ -18,21 +18,18 @@ import {
   FaEdit, 
   FaTrash, 
   FaEye, 
-  FaQrcode, 
   FaFilter,
   FaDownload,
   FaSearch
 } from 'react-icons/fa';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import QRCode from 'qrcode.react';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -202,12 +199,6 @@ const Products = () => {
       location: '',
       notes: ''
     });
-  };
-
-  // Show QR code
-  const showQRCode = (product) => {
-    setSelectedProduct(product);
-    setShowQRModal(true);
   };
 
   // Filter products
@@ -419,14 +410,6 @@ const Products = () => {
                           <FaEdit />
                         </Button>
                         <Button
-                          variant="outline-info"
-                          size="sm"
-                          className="me-2"
-                          onClick={() => showQRCode(product)}
-                        >
-                          <FaQrcode />
-                        </Button>
-                        <Button
                           variant="outline-danger"
                           size="sm"
                           onClick={() => handleDelete(product._id)}
@@ -617,36 +600,6 @@ const Products = () => {
             </Button>
           </Modal.Footer>
         </Form>
-      </Modal>
-
-      {/* QR Code Modal */}
-      <Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Product QR Code</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="text-center">
-          {selectedProduct && (
-            <>
-              <QRCode 
-                value={JSON.stringify({
-                  id: selectedProduct._id,
-                  code: selectedProduct.productCode,
-                  name: selectedProduct.name
-                })}
-                size={200}
-              />
-              <div className="mt-3">
-                <h5>{selectedProduct.productCode}</h5>
-                <p className="text-muted">{selectedProduct.name}</p>
-              </div>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowQRModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
       </Modal>
     </Container>
   );
