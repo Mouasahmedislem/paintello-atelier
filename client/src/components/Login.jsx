@@ -105,6 +105,14 @@ const Login = ({ login }) => {
                   <div>Password: Admin123! / Operator123!</div>
                 </div>
               </div>
+              <div className="mt-4 text-center">
+  <p className="text-muted">
+    Don't have an account?{" "}
+    <a href="/register" style={{ color: "#0d6efd", textDecoration: "none" }}>
+      Register here
+    </a>
+  </p>
+</div>
             </Card.Body>
           </Card>
         </Col>
