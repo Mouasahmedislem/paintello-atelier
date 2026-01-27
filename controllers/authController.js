@@ -61,7 +61,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// Login user
+// Login user - FIXED VERSION
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -84,8 +84,8 @@ exports.login = async (req, res) => {
       });
     }
     
-    // Check password (simple comparison for development)
-    const isMatch = password === user.password;
+    // FIX: Use bcrypt to compare passwords
+    const isMatch = await user.comparePassword(password);
     
     if (!isMatch) {
       return res.status(401).json({
